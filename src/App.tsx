@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 
-const LAMP_URL = "http://192.0.0.2:5001/lampe_on";
+const LAMP_URL = "http://127.0.0.1:5001/lampe_on";
 const COOLDOWN_MS = 400;
+const REQUEST_TIMEOUT_MS = 1200;
 
 function buildTriggerUrl(baseUrl: string) {
   const url = new URL(baseUrl);
-  url.searchParams.set("t", Date.now().toString());
+  url.searchParams.set("_", Date.now().toString());
   return url.toString();
 }
 
@@ -30,15 +31,28 @@ export default function App() {
     setIsCoolingDown(true);
 
     const img = new Image();
-    img.onload = () => {
-      setStatus("Trigger sent.");
+    img.decoding = "async";
+    let done = false;
+    const finish = (message: string) => {
+      if (done) {
+        return;
+      }
+      done = true;
+      setStatus(message);
       setLastTriggered(new Date().toISOString());
+    };
+
+    img.onload = () => {
+      finish("Trigger sent.");
     };
     img.onerror = () => {
-      setStatus("Trigger sent (no response)." );
-      setLastTriggered(new Date().toISOString());
+      finish("Trigger sent (no response).");
     };
     img.src = buildTriggerUrl(LAMP_URL);
+
+    window.setTimeout(() => {
+      finish("Trigger sent (timeout).");
+    }, REQUEST_TIMEOUT_MS);
 
     window.setTimeout(() => {
       setIsCoolingDown(false);
