@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 const HOST = process.env.HOST ?? "127.0.0.1";
 const PORT = Number(process.env.PORT ?? "5000");
 const MEDIA_URL =
-  process.env.DEEZER_MEDIA_URL ?? "http://127.0.0.1:5001/deezer/media";
+  process.env.DEEZER_MEDIA_URL ?? "http://127.0.0.1:5002/deezer/media";
 const POLL_INTERVAL_MS = Number(
   process.env.DEEZER_POLL_INTERVAL_MS ?? "50000"
 );
