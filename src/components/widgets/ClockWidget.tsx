@@ -27,7 +27,6 @@ export function ClockWidget() {
     <article className="widget-card widget-card--clock">
       <header>
         <h2>Clock</h2>
-        <p className="widget-subtitle">Always-on time display</p>
       </header>
       <div className="clock">
         <span className="clock__time">{formatTime(now)}</span>

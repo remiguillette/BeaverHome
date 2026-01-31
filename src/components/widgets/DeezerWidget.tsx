@@ -1,62 +1,30 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
-const DEEZER_NEXT_URL = "http://127.0.0.1:5001/deezer/next";
+const ACTION_ENDPOINT = "http://127.0.0.1:5001/api/action";
+const ACTION_NAME = "deezer.next";
 const COOLDOWN_MS = 400;
-const REQUEST_TIMEOUT_MS = 1200;
-
-function buildTriggerUrl(baseUrl: string) {
-  const url = new URL(baseUrl);
-  url.searchParams.set("_", Date.now().toString());
-  return url.toString();
-}
 
 export function DeezerWidget() {
-  const [status, setStatus] = useState("Ready");
-  const [lastTriggered, setLastTriggered] = useState<string | null>(null);
   const [isCoolingDown, setIsCoolingDown] = useState(false);
 
-  const formattedLastTriggered = useMemo(() => {
-    if (!lastTriggered) {
-      return "Never";
-    }
-    return new Date(lastTriggered).toLocaleTimeString();
-  }, [lastTriggered]);
-
-  const triggerNext = () => {
+  const triggerNext = async () => {
     if (isCoolingDown) {
       return;
     }
 
-    setStatus("Sending trigger...");
     setIsCoolingDown(true);
 
-    const img = new Image();
-    img.decoding = "async";
-    let done = false;
-    const finish = (message: string) => {
-      if (done) {
-        return;
-      }
-      done = true;
-      setStatus(message);
-      setLastTriggered(new Date().toISOString());
-    };
-
-    img.onload = () => {
-      finish("Trigger sent.");
-    };
-    img.onerror = () => {
-      finish("Trigger sent (no response).");
-    };
-    img.src = buildTriggerUrl(DEEZER_NEXT_URL);
-
-    window.setTimeout(() => {
-      finish("Trigger sent (timeout).");
-    }, REQUEST_TIMEOUT_MS);
-
-    window.setTimeout(() => {
-      setIsCoolingDown(false);
-    }, COOLDOWN_MS);
+    try {
+      await fetch(ACTION_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: ACTION_NAME }),
+      });
+    } finally {
+      window.setTimeout(() => {
+        setIsCoolingDown(false);
+      }, COOLDOWN_MS);
+    }
   };
 
   return (
@@ -74,15 +42,6 @@ export function DeezerWidget() {
         >
           {isCoolingDown ? "Please wait..." : "Next Track"}
         </button>
-        <div className="status">
-          <p>
-            <span>Status:</span> {status}
-          </p>
-          <p>
-            <span>Last trigger:</span> {formattedLastTriggered}
-          </p>
-          <p className="hint">Target: {DEEZER_NEXT_URL}</p>
-        </div>
       </div>
     </article>
   );
