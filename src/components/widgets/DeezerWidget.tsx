@@ -89,7 +89,7 @@ export function DeezerWidget() {
     loadNowPlaying();
 
     if (!("EventSource" in window)) {
-      const interval = window.setInterval(loadNowPlaying, 15000);
+      const interval = window.setInterval(loadNowPlaying, 4000);
 
       return () => {
         active = false;
