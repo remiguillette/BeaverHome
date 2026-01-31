@@ -9,7 +9,6 @@ const ACTIONS = [
 const ACTION_ENDPOINT = "/api/deezer";
 const NOW_PLAYING_ENDPOINT = "/api/now-playing";
 const COOLDOWN_MS = 400;
-const NOW_PLAYING_REFRESH_MS = 15000;
 
 type ActionName = (typeof ACTIONS)[number]["action"];
 
@@ -32,6 +31,18 @@ export function DeezerWidget() {
   const [nowPlaying, setNowPlaying] = useState<NowPlaying | null>(null);
   const [nowPlayingError, setNowPlayingError] = useState<string | null>(null);
   const [nowPlayingUpdatedAt, setNowPlayingUpdatedAt] = useState<string | null>(null);
+
+  const handleNowPlayingPayload = (data: NowPlayingResponse) => {
+    if (data.ok && data.nowPlaying) {
+      setNowPlaying(data.nowPlaying);
+      setNowPlayingUpdatedAt(data.updatedAt ?? null);
+      setNowPlayingError(null);
+    } else {
+      setNowPlaying(null);
+      setNowPlayingUpdatedAt(data.updatedAt ?? null);
+      setNowPlayingError(data.error ?? "No player data yet.");
+    }
+  };
 
   const triggerAction = async (action: ActionName) => {
     if (cooldownAction) {
@@ -63,15 +74,7 @@ export function DeezerWidget() {
           return;
         }
 
-        if (data.ok && data.nowPlaying) {
-          setNowPlaying(data.nowPlaying);
-          setNowPlayingUpdatedAt(data.updatedAt ?? null);
-          setNowPlayingError(null);
-        } else {
-          setNowPlaying(null);
-          setNowPlayingUpdatedAt(data.updatedAt ?? null);
-          setNowPlayingError(data.error ?? "No player data yet.");
-        }
+        handleNowPlayingPayload(data);
       } catch (error) {
         if (!active) {
           return;
@@ -84,11 +87,42 @@ export function DeezerWidget() {
     };
 
     loadNowPlaying();
-    const interval = window.setInterval(loadNowPlaying, NOW_PLAYING_REFRESH_MS);
+
+    if (!("EventSource" in window)) {
+      const interval = window.setInterval(loadNowPlaying, 15000);
+
+      return () => {
+        active = false;
+        window.clearInterval(interval);
+      };
+    }
+
+    const eventSource = new EventSource("/api/now-playing/events");
+
+    eventSource.addEventListener("nowPlaying", (event) => {
+      if (!active) {
+        return;
+      }
+
+      try {
+        const data = JSON.parse(event.data) as NowPlayingResponse;
+        handleNowPlayingPayload(data);
+      } catch (parseError) {
+        setNowPlayingError("Unable to read now playing updates.");
+      }
+    });
+
+    eventSource.addEventListener("error", () => {
+      if (!active) {
+        return;
+      }
+
+      setNowPlayingError((prev) => prev ?? "Waiting for player updates...");
+    });
 
     return () => {
       active = false;
-      window.clearInterval(interval);
+      eventSource.close();
     };
   }, []);
 

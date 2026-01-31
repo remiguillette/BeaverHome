@@ -22,6 +22,8 @@ const state = {
   error: null
 };
 
+const sseClients = new Set();
+
 const formatDuration = (durationMs) => {
   if (!Number.isFinite(durationMs) || durationMs <= 0) {
     return "00:00";
@@ -59,6 +61,28 @@ const parseNowPlaying = (raw) => {
   };
 };
 
+const buildNowPlayingPayload = () => ({
+  ok: Boolean(state.parsed),
+  nowPlaying: state.parsed,
+  updatedAt: state.updatedAt,
+  lastChecked: state.lastChecked,
+  error: state.error
+});
+
+const broadcastNowPlaying = () => {
+  if (sseClients.size === 0) {
+    return;
+  }
+
+  const message = `event: nowPlaying\ndata: ${JSON.stringify(
+    buildNowPlayingPayload()
+  )}\n\n`;
+
+  for (const client of sseClients) {
+    client.write(message);
+  }
+};
+
 const refreshNowPlaying = async () => {
   state.lastChecked = new Date().toISOString();
 
@@ -77,14 +101,22 @@ const refreshNowPlaying = async () => {
       state.parsed = null;
       state.updatedAt = null;
       state.error = "Unable to parse now playing payload.";
+      broadcastNowPlaying();
       return;
     }
 
     state.parsed = parsed;
     state.updatedAt = new Date().toISOString();
     state.error = null;
+    broadcastNowPlaying();
   } catch (error) {
-    state.error = error?.message ?? String(error);
+    const nextError = error?.message ?? String(error);
+    if (state.error !== nextError) {
+      state.error = nextError;
+      broadcastNowPlaying();
+    } else {
+      state.error = nextError;
+    }
   }
 };
 
@@ -139,13 +171,29 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url ?? "/", `http://${HOST}:${PORT}`);
 
   if (req.method === "GET" && url.pathname === "/api/now-playing") {
-    sendJson(res, 200, {
-      ok: Boolean(state.parsed),
-      nowPlaying: state.parsed,
-      updatedAt: state.updatedAt,
-      lastChecked: state.lastChecked,
-      error: state.error
+    sendJson(res, 200, buildNowPlayingPayload());
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/now-playing/events") {
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-store",
+      Connection: "keep-alive"
     });
+
+    res.write(
+      `event: nowPlaying\ndata: ${JSON.stringify(
+        buildNowPlayingPayload()
+      )}\n\n`
+    );
+
+    sseClients.add(res);
+
+    res.on("close", () => {
+      sseClients.delete(res);
+    });
+
     return;
   }
 
