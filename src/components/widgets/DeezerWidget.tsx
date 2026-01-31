@@ -1,28 +1,33 @@
 import { useState } from "react";
 
-const ACTION_ENDPOINT = "http://127.0.0.1:5001/api/action";
-const ACTION_NAME = "deezer.next";
+const ACTIONS = [
+  { action: "back", label: "Back" },
+  { action: "play", label: "Play/Pause" },
+  { action: "next", label: "Next" }
+] as const;
+
+const ACTION_ENDPOINT = "/api/deezer";
 const COOLDOWN_MS = 400;
 
-export function DeezerWidget() {
-  const [isCoolingDown, setIsCoolingDown] = useState(false);
+type ActionName = (typeof ACTIONS)[number]["action"];
 
-  const triggerNext = async () => {
-    if (isCoolingDown) {
+export function DeezerWidget() {
+  const [cooldownAction, setCooldownAction] = useState<ActionName | null>(null);
+
+  const triggerAction = async (action: ActionName) => {
+    if (cooldownAction) {
       return;
     }
 
-    setIsCoolingDown(true);
+    setCooldownAction(action);
 
     try {
-      await fetch(ACTION_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: ACTION_NAME }),
+      await fetch(`${ACTION_ENDPOINT}/${action}`, {
+        method: "GET"
       });
     } finally {
       window.setTimeout(() => {
-        setIsCoolingDown(false);
+        setCooldownAction(null);
       }, COOLDOWN_MS);
     }
   };
@@ -34,14 +39,19 @@ export function DeezerWidget() {
         <p className="widget-subtitle">Music controls</p>
       </header>
       <div className="widget-body">
-        <button
-          className="action-button"
-          type="button"
-          onClick={triggerNext}
-          disabled={isCoolingDown}
-        >
-          {isCoolingDown ? "Please wait..." : "Next Track"}
-        </button>
+        <div className="deezer-controls">
+          {ACTIONS.map(({ action, label }) => (
+            <button
+              key={action}
+              className="action-button"
+              type="button"
+              onClick={() => triggerAction(action)}
+              disabled={cooldownAction !== null}
+            >
+              {cooldownAction === action ? "Please wait..." : label}
+            </button>
+          ))}
+        </div>
       </div>
     </article>
   );

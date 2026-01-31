@@ -160,6 +160,11 @@ h2 {
   box-shadow: 0 12px 24px rgba(59, 130, 246, 0.35);
 }
 
+.deezer-controls {
+  display: grid;
+  gap: 12px;
+}
+
 .action-button:active {
   transform: scale(0.98);
 }
