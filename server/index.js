@@ -2,7 +2,7 @@ import http from "node:http";
 import { URL } from "node:url";
 
 const HOST = process.env.HOST ?? "127.0.0.1";
-const PORT = Number(process.env.PORT ?? "5001");
+const PORT = Number(process.env.PORT ?? "5000");
 const MEDIA_URL =
   process.env.DEEZER_MEDIA_URL ?? "http://127.0.0.1:5001/deezer/media";
 const POLL_INTERVAL_MS = Number(
