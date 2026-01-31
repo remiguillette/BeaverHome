@@ -11,7 +11,10 @@ const PORT = Number(process.env.PORT ?? "5001");
 const MEDIA_URL =
   process.env.DEEZER_MEDIA_URL ?? "http://127.0.0.1:5002/deezer/media";
 const POLL_INTERVAL_MS = Number(
-  process.env.DEEZER_POLL_INTERVAL_MS ?? "50000"
+  process.env.DEEZER_POLL_INTERVAL_MS ?? "4000"
+);
+const SSE_HEARTBEAT_MS = Number(
+  process.env.DEEZER_SSE_HEARTBEAT_MS ?? "5000"
 );
 
 const state = {
@@ -190,8 +193,13 @@ const server = http.createServer((req, res) => {
 
     sseClients.add(res);
 
+    const heartbeat = setInterval(() => {
+      res.write(": keep-alive\n\n");
+    }, SSE_HEARTBEAT_MS);
+
     res.on("close", () => {
       sseClients.delete(res);
+      clearInterval(heartbeat);
     });
 
     return;
