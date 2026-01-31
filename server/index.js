@@ -37,15 +37,15 @@ const formatDuration = (durationMs) => {
 };
 
 const parseNowPlaying = (raw) => {
-  const parts = raw.trim().split("||");
+  const parts = raw.trim().split("|");
 
   if (parts.length < 3) {
     return null;
   }
 
   const artist = parts[0].trim();
-  const title = parts[1].trim();
-  const durationMs = Number(parts[2]);
+  const durationMs = Number(parts[parts.length - 1]);
+  const title = parts.slice(1, -1).join("|").trim();
 
   if (!artist || !title || !Number.isFinite(durationMs)) {
     return null;
