@@ -1,0 +1,135 @@
+:root {
+  color-scheme: dark;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  background-color: #0b0f14;
+  color: #f3f4f6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #121926, #05070b 70%);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px 40px;
+}
+
+.card {
+  width: min(540px, 100%);
+  background: #111827;
+  border-radius: 24px;
+  padding: 28px 24px;
+  box-shadow: 0 20px 45px rgba(5, 8, 16, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  padding: 6px 12px;
+  border-radius: 999px;
+  width: fit-content;
+}
+
+h1 {
+  font-size: 28px;
+  margin: 0;
+}
+
+.subtitle {
+  margin: 0;
+  color: #cbd5f5;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.panel {
+  margin-top: 24px;
+  background: #0f172a;
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.action-button {
+  width: 100%;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  font-size: 18px;
+  padding: 18px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.35);
+}
+
+.action-button:active {
+  transform: scale(0.98);
+}
+
+.action-button:disabled {
+  cursor: not-allowed;
+  background: #1f2937;
+  box-shadow: none;
+}
+
+.status {
+  margin-top: 18px;
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  color: #e2e8f0;
+}
+
+.status span {
+  color: #94a3b8;
+  margin-right: 6px;
+}
+
+.hint {
+  font-size: 12px;
+  color: #64748b;
+  word-break: break-all;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 22px 18px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  .action-button {
+    font-size: 17px;
+    padding: 16px 14px;
+  }
+}
