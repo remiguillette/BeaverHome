@@ -4,14 +4,7 @@ function formatTime(date: Date) {
   return date.toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
-  });
-}
-
-function formatDate(date: Date) {
-  return date.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
+    hour12: false,
   });
 }
 
@@ -24,14 +17,6 @@ export function ClockWidget() {
   }, []);
 
   return (
-    <article className="widget-card widget-card--clock">
-      <header>
-        <h2>Clock</h2>
-      </header>
-      <div className="clock">
-        <span className="clock__time">{formatTime(now)}</span>
-        <span className="clock__date">{formatDate(now)}</span>
-      </div>
-    </article>
+    <div className="status-bar__clock">{formatTime(now)}</div>
   );
 }
